@@ -1,14 +1,8 @@
-# from crypt import methods
-from dataclasses import fields
-from distutils.log import debug
-from email.policy import strict
-from pip import main
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow 
+from flask_marshmallow import Marshmallow
 from flask_debugtoolbar import DebugToolbarExtension
 import datetime
-import os
 
 # Init app
 app = Flask(__name__)
@@ -17,7 +11,6 @@ app.debug = True
 # Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 
 # toolbar = DebugToolbarExtension(app)
 
@@ -33,7 +26,9 @@ class Players(db.Model):
     __tablename__ = 'players'
     __table_args__ = {'schema': 'licenta'}
 
-    id = db.Column(db.BigInteger, db.Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=9223372036854775807, cycle=False, cache=1), primary_key=True)
+    id = db.Column(db.BigInteger,
+                   db.Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=9223372036854775807, cycle=False,
+                               cache=1), primary_key=True)
     first_name = db.Column(db.Text, nullable=False)
     last_name = db.Column(db.Text, nullable=False)
     shirt_number = db.Column(db.BigInteger, nullable=False)
@@ -41,7 +36,7 @@ class Players(db.Model):
     age = db.Column(db.BigInteger, nullable=False)
     team = db.Column(db.ForeignKey('licenta.teams.name'), nullable=False)
 
-    teams = db.relationship('Teams', back_populates='players')    
+    teams = db.relationship('Teams', back_populates='players')
 
     def __init__(self, first_name, last_name, shirt_number, position, age, team):
         self.first_name = first_name
@@ -57,7 +52,9 @@ class Teams(db.Model):
     __tablename__ = 'teams'
     __table_args__ = {'schema': 'licenta'}
 
-    id = db.Column(db.Integer, db.Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=True, cache=1), primary_key=True)
+    id = db.Column(db.Integer,
+                   db.Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=True, cache=1),
+                   primary_key=True)
     name = db.Column(db.Text, nullable=False, unique=True)
     country = db.Column(db.Text, nullable=False)
     city = db.Column(db.Text, nullable=False)
@@ -70,7 +67,7 @@ class Teams(db.Model):
         self.country = country
         self.city = city
         self.points = points
-        
+
 
 # Schemas
 # Player Schema
@@ -109,9 +106,8 @@ def add_team():
     t1 = datetime.datetime.now()
     db.session.add(new_team)
     t2 = datetime.datetime.now()
-    print (((t2 - t1).total_seconds()) * 1000)
+    print(((t2 - t1).total_seconds()) * 1000)
     db.session.commit()
-
 
     return team_schema.jsonify(new_team)
 
@@ -127,9 +123,8 @@ def update_team():
     team = teams[0]
     team.points = points
     t2 = datetime.datetime.now()
-    print (((t2 - t1).total_seconds()) * 1000)
+    print(((t2 - t1).total_seconds()) * 1000)
     db.session.commit()
-
 
     return team_schema.jsonify(team)
 
@@ -137,29 +132,28 @@ def update_team():
 # 3. Delete players by position and age
 @app.route('/delete-player/<position>/<age>', methods=['DELETE'])
 def delete_player(position, age):
-
     t1 = datetime.datetime.now()
     stmt = Players.__table__.delete().where(Players.position == position).where(Players.age > age)
     db.session.execute(stmt)
     t2 = datetime.datetime.now()
-    print (((t2 - t1).total_seconds()) * 1000)
+    print(((t2 - t1).total_seconds()) * 1000)
     db.session.commit()
 
     return jsonify("Deleted")
 
 
-
 # 4. Get player and team by position
 @app.route('/player-by-position/<position>', methods=['GET'])
 def get_players_and_team_by_position(position):
-
     t1 = datetime.datetime.now()
-    all_players = Players.query.join(Teams, Players.team == Teams.name).filter(Players.position == position).filter(Players.team.match("%United")).all()
+    all_players = Players.query.join(Teams, Players.team == Teams.name).filter(Players.position == position).filter(
+        Players.team.match("%United")).all()
     t2 = datetime.datetime.now()
-    print (((t2 - t1).total_seconds()) * 1000)
+    print(((t2 - t1).total_seconds()) * 1000)
     result = players_schema.dump(all_players)
 
     return jsonify(result)
+
 
 # 5. Get all players
 @app.route('/players', methods=['GET'])
@@ -168,9 +162,10 @@ def get_players():
     all_players = Players.query.order_by(Players.id.asc())
     result = players_schema.dump(all_players)
     t2 = datetime.datetime.now()
-    print (((t2 - t1).total_seconds()) * 1000)
+    print(((t2 - t1).total_seconds()) * 1000)
 
     return jsonify(result)
+
 
 # 6. Get team by points
 @app.route('/teams/<points>', methods=['GET'])
@@ -178,11 +173,11 @@ def get_teams_by_points(points):
     t1 = datetime.datetime.now()
     all_teams = Teams.query.filter(Teams.points > points).all()
     t2 = datetime.datetime.now()
-    print (((t2 - t1).total_seconds()) * 1000)
+    print(((t2 - t1).total_seconds()) * 1000)
     result = teams_schema.dump(all_teams)
 
-
     return jsonify(result)
+
 
 # Run server
 if __name__ == '__main__':
