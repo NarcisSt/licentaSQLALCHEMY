@@ -150,7 +150,7 @@ def get_players_and_team_by_position(position):
         Players.team.match("%United")).all()
     t2 = datetime.datetime.now()
     print(((t2 - t1).total_seconds()) * 1000)
-    result = players_schema.dump(all_players)
+    result = players_schema.dump(all_players.length)
 
     return jsonify(result)
 
@@ -160,7 +160,7 @@ def get_players_and_team_by_position(position):
 def get_players():
     t1 = datetime.datetime.now()
     all_players = Players.query.order_by(Players.id.asc())
-    result = players_schema.dump(all_players)
+    result = players_schema.dump(all_players.length)
     t2 = datetime.datetime.now()
     print(((t2 - t1).total_seconds()) * 1000)
 
@@ -174,7 +174,7 @@ def get_teams_by_points(points):
     all_teams = Teams.query.filter(Teams.points > points).all()
     t2 = datetime.datetime.now()
     print(((t2 - t1).total_seconds()) * 1000)
-    result = teams_schema.dump(all_teams)
+    result = teams_schema.dump(all_teams.length)
 
     return jsonify(result)
 
